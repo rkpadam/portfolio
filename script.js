@@ -1140,8 +1140,8 @@
       return;
     }
 
-    if (message.length < 10 || message.length > 3000) {
-      setStatus("Please write a short message.", "is-error");
+    if (message.length < 2 || message.length > 3000) {
+      setStatus("Please add a message.", "is-error");
       return;
     }
 
