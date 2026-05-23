@@ -46,7 +46,7 @@ email address should remain private inside the backend service only.
 
 ## Before publishing
 
-- Confirm `https://romipadam.com/` in `index.html`
+- Confirm the final published URL in `index.html`
 - Add the deployed contact endpoint to `assets/config.js`
 - Confirm no Gmail address or phone number is committed
 - Remove `__MACOSX/` and `.DS_Store` files
