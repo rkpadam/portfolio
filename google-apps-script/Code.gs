@@ -1,16 +1,23 @@
 /**
  * Private Google Apps Script backend for the portfolio contact form.
  *
- * Keep this script private. Replace RECIPIENT_EMAIL in the Apps Script project,
- * not in the public website repository.
+ * Keep recipient details out of the public website repository. Store the
+ * recipient address in Apps Script project settings as a script property:
+ *
+ * CONTACT_TO_EMAIL = your-private-email@example.com
  */
 
-const RECIPIENT_EMAIL = "YOUR_PRIVATE_GMAIL_HERE";
+const CONTACT_TO_EMAIL_PROPERTY = "CONTACT_TO_EMAIL";
 const SUBJECT_PREFIX = "Portfolio Contact";
+
+function doGet() {
+  return jsonResponse({ ok: true, message: "Portfolio contact endpoint is active." });
+}
 
 function doPost(e) {
   try {
     const params = e && e.parameter ? e.parameter : {};
+    const recipientEmail = getRecipientEmail();
     const name = clean(params.name);
     const email = clean(params.email);
     const company = clean(params.company);
@@ -20,6 +27,10 @@ function doPost(e) {
 
     if (website) {
       return jsonResponse({ ok: true });
+    }
+
+    if (!recipientEmail) {
+      return jsonResponse({ ok: false, error: "Missing CONTACT_TO_EMAIL script property." });
     }
 
     const validationError = validateInput(name, email, message);
@@ -45,7 +56,7 @@ function doPost(e) {
     ].join("\n");
 
     MailApp.sendEmail({
-      to: RECIPIENT_EMAIL,
+      to: recipientEmail,
       subject: safeSubject,
       body: body,
       replyTo: email,
@@ -67,11 +78,15 @@ function validateInput(name, email, message) {
     return "Email is invalid.";
   }
 
-  if (message.length < 10 || message.length > 3000) {
+  if (message.length < 2 || message.length > 3000) {
     return "Message length is invalid.";
   }
 
   return "";
+}
+
+function getRecipientEmail() {
+  return clean(PropertiesService.getScriptProperties().getProperty(CONTACT_TO_EMAIL_PROPERTY));
 }
 
 function hasSpamSignals(value) {

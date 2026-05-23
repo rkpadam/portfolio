@@ -48,6 +48,35 @@ its URL into `assets/config.js`:
 window.CONTACT_ENDPOINT_URL = "YOUR_DEPLOYED_WEB_APP_URL";
 ```
 
+### Google Apps Script setup
+
+1. Go to `https://script.google.com/`.
+2. Create a new project.
+3. Replace the default code with `google-apps-script/Code.gs` from this repo.
+4. In Apps Script, open Project Settings.
+5. Under Script properties, add:
+
+```text
+CONTACT_TO_EMAIL = your-private-email@example.com
+```
+
+Do not commit this email address to GitHub.
+
+6. Save the project.
+7. Click Deploy -> New deployment.
+8. Select type: Web app.
+9. Set:
+
+```text
+Execute as: Me
+Who has access: Anyone
+```
+
+10. Deploy and authorize the script.
+11. Copy the Web app URL.
+12. Paste that URL into `assets/config.js`.
+13. Commit and push the updated `assets/config.js`.
+
 The included `google-apps-script/Code.gs` template validates name length, email
 format, message length, honeypot input, and basic spam signals before routing a
 message privately.
