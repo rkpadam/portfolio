@@ -7,11 +7,17 @@
  * CONTACT_TO_EMAIL = your-private-email@example.com
  */
 
+// Do not replace this value with your email address. It must stay as the
+// script-property name. Add your actual email in Project Settings instead.
 const CONTACT_TO_EMAIL_PROPERTY = "CONTACT_TO_EMAIL";
 const SUBJECT_PREFIX = "Portfolio Contact";
 
 function doGet() {
-  return jsonResponse({ ok: true, message: "Portfolio contact endpoint is active." });
+  return jsonResponse({
+    ok: true,
+    message: "Portfolio contact endpoint is active.",
+    recipientConfigured: Boolean(getRecipientEmail())
+  });
 }
 
 function doPost(e) {
