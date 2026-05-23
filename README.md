@@ -54,13 +54,17 @@ window.CONTACT_ENDPOINT_URL = "YOUR_DEPLOYED_WEB_APP_URL";
 2. Create a new project.
 3. Replace the default code with `google-apps-script/Code.gs` from this repo.
 4. In Apps Script, open Project Settings.
-5. Under Script properties, add:
+5. Under Script properties, add this exact property name:
 
 ```text
 CONTACT_TO_EMAIL = your-private-email@example.com
 ```
 
-Do not commit this email address to GitHub.
+Do not use `CONTACT_TO_EMAIL_PROPERTY` as the property name. The code uses
+`CONTACT_TO_EMAIL_PROPERTY` only as a constant that points to the real script
+property named `CONTACT_TO_EMAIL`.
+
+Do not commit your actual email address to GitHub.
 
 6. Save the project.
 7. Click Deploy -> New deployment.
@@ -76,6 +80,28 @@ Who has access: Anyone
 11. Copy the Web app URL.
 12. Paste that URL into `assets/config.js`.
 13. Commit and push the updated `assets/config.js`.
+
+If you edit the Apps Script code later, update the active deployment:
+
+1. Click Deploy -> Manage deployments.
+2. Click the pencil icon for the web app.
+3. Choose Version -> New version.
+4. Click Deploy.
+5. Open the web app URL in a browser.
+
+The health-check response should include:
+
+```json
+{
+  "ok": true,
+  "message": "Portfolio contact endpoint is active.",
+  "recipientConfigured": true
+}
+```
+
+If `recipientConfigured` is missing, the latest `Code.gs` was not deployed. If
+`recipientConfigured` is `false`, the `CONTACT_TO_EMAIL` script property is
+missing or named incorrectly.
 
 The included `google-apps-script/Code.gs` template validates name length, email
 format, message length, honeypot input, and basic spam signals before routing a
