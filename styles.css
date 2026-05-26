@@ -307,6 +307,68 @@ h3 {
   font-size: 0.85rem;
 }
 
+.portrait-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: clamp(500px, 58vw, 650px);
+  overflow: hidden;
+  border: 1px solid rgba(7, 30, 58, 0.24);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(7, 30, 58, 0.98), rgba(20, 48, 82, 0.96)),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 28px),
+    repeating-linear-gradient(0deg, rgba(201, 134, 43, 0.08) 0 1px, transparent 1px 28px);
+  box-shadow: var(--shadow);
+  isolation: isolate;
+}
+
+.portrait-stage::before,
+.portrait-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.portrait-stage::before {
+  background:
+    linear-gradient(120deg, transparent 0 34%, rgba(201, 134, 43, 0.22) 34% 35%, transparent 35% 100%),
+    linear-gradient(300deg, transparent 0 52%, rgba(255, 255, 255, 0.08) 52% 53%, transparent 53% 100%);
+}
+
+.portrait-stage::after {
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.16) 48%, transparent 58%);
+  mix-blend-mode: screen;
+  opacity: 0.34;
+  transform: translateX(-42%);
+}
+
+.portrait-canvas {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: min(88%, 500px);
+  aspect-ratio: 1;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.portrait-fallback {
+  position: absolute;
+  width: min(70%, 420px);
+  max-height: 82%;
+  object-fit: contain;
+  opacity: 0.18;
+  filter: grayscale(0.1) contrast(1.05);
+  transition: opacity 220ms ease;
+}
+
+.has-portrait-effect .portrait-fallback {
+  opacity: 0;
+}
+
 .robot-lab {
   position: relative;
   overflow: hidden;
@@ -459,6 +521,30 @@ h3 {
 
 #brickCanvas:active {
   cursor: grabbing;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .portrait-stage::after {
+    animation: portrait-sweep 7s ease-in-out infinite;
+  }
+}
+
+@keyframes portrait-sweep {
+  0%,
+  32% {
+    transform: translateX(-56%);
+    opacity: 0;
+  }
+
+  48% {
+    opacity: 0.46;
+  }
+
+  74%,
+  100% {
+    transform: translateX(52%);
+    opacity: 0;
+  }
 }
 
 .about-section {
@@ -908,6 +994,14 @@ h3 {
     grid-template-columns: 1fr;
   }
 
+  .portrait-stage {
+    min-height: clamp(500px, 78vw, 640px);
+  }
+
+  .portrait-canvas {
+    width: min(78%, 440px);
+  }
+
   .canvas-wrap {
     aspect-ratio: auto;
     height: clamp(320px, 60vw, 430px);
@@ -961,6 +1055,14 @@ h3 {
 
   .hero-lede {
     font-size: 1.18rem;
+  }
+
+  .portrait-stage {
+    min-height: clamp(430px, 112vw, 560px);
+  }
+
+  .portrait-canvas {
+    width: min(86%, 340px);
   }
 
   .impact-strip,

@@ -1,4 +1,227 @@
 (function () {
+  const canvas = document.querySelector("#portraitCanvas");
+  const stage = document.querySelector(".ascii-portrait-stage");
+
+  if (!canvas || !stage) {
+    return;
+  }
+
+  const ctx = canvas.getContext("2d");
+  const source = new Image();
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const chars = " .:-=+*#%@".split("");
+  const mouse = { x: -1000, y: -1000, active: false };
+  const mouseTarget = { x: -1000, y: -1000 };
+  let particles = [];
+  let rafId = 0;
+  let size = 420;
+  let startTime = performance.now();
+  let ready = false;
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function setCanvasSize() {
+    const rect = canvas.getBoundingClientRect();
+    const nextSize = Math.max(260, Math.round(Math.min(rect.width, rect.height)));
+    const ratio = Math.min(window.devicePixelRatio || 1, 2);
+    size = nextSize;
+    canvas.width = Math.round(size * ratio);
+    canvas.height = Math.round(size * ratio);
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  }
+
+  function makeParticles() {
+    if (!source.naturalWidth || !source.naturalHeight) {
+      return;
+    }
+
+    setCanvasSize();
+
+    const offscreen = document.createElement("canvas");
+    const offCtx = offscreen.getContext("2d", { willReadFrequently: true });
+    offscreen.width = size;
+    offscreen.height = size;
+    offCtx.clearRect(0, 0, size, size);
+
+    const aspect = source.naturalWidth / source.naturalHeight;
+    let drawHeight = size * 1.08;
+    let drawWidth = drawHeight * aspect;
+    if (drawWidth > size * 0.9) {
+      drawWidth = size * 0.9;
+      drawHeight = drawWidth / aspect;
+    }
+    const offsetX = (size - drawWidth) / 2;
+    const offsetY = -size * 0.015;
+    offCtx.drawImage(source, offsetX, offsetY, drawWidth, drawHeight);
+
+    const pixels = offCtx.getImageData(0, 0, size, size).data;
+    const isSmall = size <= 340;
+    const fontSize = isSmall ? 5 : 7;
+    const colGap = fontSize * 0.76;
+    const rowGap = fontSize * 1.12;
+    const nextParticles = [];
+
+    for (let y = 0; y < size; y += rowGap) {
+      for (let x = 0; x < size; x += colGap) {
+        const index = (Math.floor(y) * size + Math.floor(x)) * 4;
+        const alpha = pixels[index + 3];
+        if (alpha < 120) {
+          continue;
+        }
+
+        const nx = (x - size * 0.5) / (size * 0.44);
+        const ny = (y - size * 0.5) / (size * 0.56);
+        const inPortraitField = nx * nx + ny * ny < 1.05 || (y > size * 0.5 && Math.abs(nx) < 0.92);
+        if (!inPortraitField) {
+          continue;
+        }
+
+        const r = pixels[index];
+        const g = pixels[index + 1];
+        const b = pixels[index + 2];
+        const brightness = (r + g + b) / 765;
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const saturation = max === 0 ? 0 : (max - min) / max;
+        let visibility = 0.2 + (1 - brightness) * 0.72 + saturation * 0.36;
+
+        if (brightness > 0.92 && saturation < 0.1) {
+          visibility *= 0.34;
+        }
+        if (visibility < 0.14) {
+          continue;
+        }
+
+        const charIndex = clamp(Math.round((1 - brightness) * (chars.length - 1)), 0, chars.length - 1);
+        const tone = brightness < 0.32 ? [251, 250, 247] : saturation > 0.15 ? [221, 157, 69] : [147, 181, 214];
+        const scatter = reducedMotion ? 0 : size * 0.9;
+
+        nextParticles.push({
+          x: x + (Math.random() - 0.5) * scatter,
+          y: y + (Math.random() - 0.5) * scatter,
+          targetX: x,
+          targetY: y,
+          vx: 0,
+          vy: 0,
+          char: chars[charIndex],
+          alpha: clamp(visibility, 0.15, 0.92),
+          color: tone,
+          delay: Math.random() * 0.42,
+          shimmer: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    particles = nextParticles;
+    ready = true;
+    startTime = performance.now();
+    document.body.classList.add("has-portrait-effect");
+  }
+
+  function draw(now) {
+    ctx.clearRect(0, 0, size, size);
+    if (!ready) {
+      return;
+    }
+
+    const elapsed = (now - startTime) / 1000;
+    mouse.x += (mouseTarget.x - mouse.x) * 0.16;
+    mouse.y += (mouseTarget.y - mouse.y) * 0.16;
+    ctx.font = `${size <= 340 ? 5 : 7}px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    particles.forEach((particle) => {
+      const particleTime = elapsed - particle.delay;
+      if (particleTime < 0) {
+        return;
+      }
+
+      const fade = reducedMotion ? 1 : Math.min(particleTime / 1.45, 1);
+      const settle = reducedMotion ? 1 : Math.min(particleTime / 2.5, 1);
+      const easedFade = 1 - Math.pow(1 - fade, 2);
+      const easedSettle = 1 - Math.pow(1 - settle, 3);
+
+      if (mouse.active && !reducedMotion) {
+        const dx = particle.x - mouse.x;
+        const dy = particle.y - mouse.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const radius = size * 0.18;
+        if (distance > 0 && distance < radius) {
+          const force = (1 - distance / radius) * 4.2;
+          particle.vx += (dx / distance) * force;
+          particle.vy += (dy / distance) * force;
+        }
+      }
+
+      const targetDx = particle.targetX - particle.x;
+      const targetDy = particle.targetY - particle.y;
+      particle.vx += targetDx * (0.012 + easedSettle * 0.08);
+      particle.vy += targetDy * (0.012 + easedSettle * 0.08);
+
+      if (!reducedMotion) {
+        particle.vx += Math.sin(elapsed * 0.55 + particle.targetY * 0.08) * 0.11;
+        particle.vy += Math.cos(elapsed * 0.55 + particle.targetX * 0.08) * 0.11;
+      }
+
+      particle.vx *= reducedMotion ? 0 : 0.88;
+      particle.vy *= reducedMotion ? 0 : 0.88;
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+
+      const shimmer = reducedMotion ? 0 : Math.sin(elapsed * 2 + particle.shimmer) * 0.08;
+      const alpha = clamp((particle.alpha + shimmer) * easedFade, 0, 0.96);
+      ctx.fillStyle = `rgba(${particle.color[0]}, ${particle.color[1]}, ${particle.color[2]}, ${alpha})`;
+      ctx.fillText(particle.char, particle.x, particle.y);
+    });
+  }
+
+  function tick(now) {
+    draw(now);
+    if (!reducedMotion) {
+      rafId = requestAnimationFrame(tick);
+    }
+  }
+
+  function movePointer(event) {
+    const rect = canvas.getBoundingClientRect();
+    mouseTarget.x = event.clientX - rect.left;
+    mouseTarget.y = event.clientY - rect.top;
+    mouse.active = true;
+  }
+
+  function leavePointer() {
+    mouse.active = false;
+    mouseTarget.x = -1000;
+    mouseTarget.y = -1000;
+  }
+
+  function resizePortrait() {
+    if (!source.complete) {
+      return;
+    }
+    makeParticles();
+    draw(performance.now());
+  }
+
+  source.addEventListener("load", () => {
+    makeParticles();
+    tick(performance.now());
+  });
+  source.src = "assets/romi-portrait.png";
+  canvas.addEventListener("pointermove", movePointer);
+  canvas.addEventListener("pointerleave", leavePointer);
+  canvas.addEventListener("pointercancel", leavePointer);
+  window.addEventListener("resize", resizePortrait);
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(resizePortrait).observe(canvas);
+  }
+  window.addEventListener("beforeunload", () => cancelAnimationFrame(rafId));
+})();
+
+(function () {
   const canvas = document.querySelector("#brickCanvas");
   const wrap = document.querySelector(".canvas-wrap");
   const playAgain = document.querySelector("#playAgain");

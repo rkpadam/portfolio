@@ -9,8 +9,9 @@ https://rkpadam.github.io/portfolio/
 ```
 
 The site is intentionally static so it can be hosted directly on GitHub Pages.
-It includes a responsive portfolio layout, a small interactive block-builder
-robot, social links, and a privacy-conscious contact form.
+It includes a responsive portfolio layout, an ASCII-style animated portrait hero,
+social links, and a privacy-conscious contact form. The earlier mini block
+builder is kept commented in `index.html` so it can be restored later.
 
 ## Local preview
 
@@ -23,8 +24,9 @@ Then open `http://localhost:4173`.
 ## Files
 
 - `index.html` - page structure and resume-based content
-- `styles.css` - responsive visual system and mini robot styling
-- `script.js` - interactive mini block builder and contact-form behavior
+- `styles.css` - responsive visual system, ASCII portrait hero, and mini robot styling
+- `script.js` - ASCII portrait animation, paused mini block builder, and contact-form behavior
+- `assets/romi-portrait.png` - lossless portrait asset for the hero
 - `assets/config.js` - private contact endpoint placeholder
 - `assets/config.sample.js` - copyable endpoint placeholder
 - `google-apps-script/Code.gs` - optional private contact-form backend template
