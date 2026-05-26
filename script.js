@@ -22,6 +22,25 @@
     return Math.max(min, Math.min(max, value));
   }
 
+  function inEllipse(x, y, cx, cy, rx, ry) {
+    const dx = (x - cx) / rx;
+    const dy = (y - cy) / ry;
+    return dx * dx + dy * dy <= 1;
+  }
+
+  function isInPersonShape(x, y) {
+    const nx = x / size;
+    const ny = y / size;
+    const head = inEllipse(nx, ny, 0.5, 0.36, 0.27, 0.29);
+    const hairLeft = inEllipse(nx, ny, 0.36, 0.49, 0.22, 0.44);
+    const hairRight = inEllipse(nx, ny, 0.64, 0.45, 0.21, 0.38);
+    const neck = nx > 0.39 && nx < 0.61 && ny > 0.54 && ny < 0.73;
+    const shoulderWidth = 0.2 + Math.max(0, ny - 0.62) * 0.46;
+    const torso = ny > 0.6 && ny < 1.03 && Math.abs(nx - 0.5) < shoulderWidth;
+
+    return head || hairLeft || hairRight || neck || torso;
+  }
+
   function setCanvasSize() {
     const rect = canvas.getBoundingClientRect();
     const nextSize = Math.max(260, Math.round(Math.min(rect.width, rect.height)));
@@ -71,10 +90,7 @@
           continue;
         }
 
-        const nx = (x - size * 0.5) / (size * 0.44);
-        const ny = (y - size * 0.5) / (size * 0.56);
-        const inPortraitField = nx * nx + ny * ny < 1.05 || (y > size * 0.5 && Math.abs(nx) < 0.92);
-        if (!inPortraitField) {
+        if (!isInPersonShape(x, y)) {
           continue;
         }
 
@@ -85,17 +101,35 @@
         const max = Math.max(r, g, b);
         const min = Math.min(r, g, b);
         const saturation = max === 0 ? 0 : (max - min) / max;
-        let visibility = 0.2 + (1 - brightness) * 0.72 + saturation * 0.36;
+        const nx = x / size;
+        const ny = y / size;
+        const face = inEllipse(nx, ny, 0.5, 0.38, 0.18, 0.22);
+        const neckRegion = nx > 0.4 && nx < 0.6 && ny > 0.54 && ny < 0.72;
+        const darkFeature = brightness < 0.36;
+        const skinTone = r > 95 && g > 48 && b > 32 && r >= g * 0.92 && r > b * 1.05 && saturation > 0.1;
+        const clothing = ny > 0.56 && brightness > 0.48 && saturation < 0.26;
+        const hair = darkFeature && (inEllipse(nx, ny, 0.36, 0.49, 0.22, 0.44) || inEllipse(nx, ny, 0.64, 0.45, 0.21, 0.38) || face);
 
-        if (brightness > 0.92 && saturation < 0.1) {
-          visibility *= 0.34;
+        if (!hair && !(skinTone && (face || neckRegion)) && !clothing) {
+          continue;
         }
+
+        let visibility = 0.22 + (1 - brightness) * 0.7 + saturation * 0.25;
+
+        if (clothing) {
+          visibility = 0.24 + (1 - brightness) * 0.36;
+        } else if (skinTone) {
+          visibility = 0.42 + saturation * 0.38 + (1 - brightness) * 0.18;
+        } else if (hair) {
+          visibility = 0.48 + (1 - brightness) * 0.44;
+        }
+
         if (visibility < 0.14) {
           continue;
         }
 
-        const charIndex = clamp(Math.round((1 - brightness) * (chars.length - 1)), 0, chars.length - 1);
-        const tone = brightness < 0.32 ? [251, 250, 247] : saturation > 0.15 ? [221, 157, 69] : [147, 181, 214];
+        const charIndex = clamp(Math.round((1 - brightness) * (chars.length - 1)) + (clothing ? 2 : 0), 0, chars.length - 1);
+        const tone = hair ? [7, 30, 58] : skinTone ? [166, 111, 35] : [66, 82, 107];
         const scatter = reducedMotion ? 0 : size * 0.9;
 
         nextParticles.push({
