@@ -244,7 +244,7 @@
     makeParticles();
     tick(performance.now());
   });
-  source.src = "assets/romi-portrait.png";
+  source.src = "assets/romi-portrait-cutout.png";
   canvas.addEventListener("pointermove", movePointer);
   canvas.addEventListener("pointerleave", leavePointer);
   canvas.addEventListener("pointercancel", leavePointer);
