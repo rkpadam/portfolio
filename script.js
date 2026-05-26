@@ -32,13 +32,14 @@
     const nx = x / size;
     const ny = y / size;
     const head = inEllipse(nx, ny, 0.5, 0.36, 0.27, 0.29);
+    const hairTop = inEllipse(nx, ny, 0.5, 0.25, 0.24, 0.16);
     const hairLeft = inEllipse(nx, ny, 0.36, 0.49, 0.22, 0.44);
     const hairRight = inEllipse(nx, ny, 0.64, 0.45, 0.21, 0.38);
     const neck = nx > 0.39 && nx < 0.61 && ny > 0.54 && ny < 0.73;
     const shoulderWidth = 0.2 + Math.max(0, ny - 0.62) * 0.46;
     const torso = ny > 0.6 && ny < 1.03 && Math.abs(nx - 0.5) < shoulderWidth;
 
-    return head || hairLeft || hairRight || neck || torso;
+    return head || hairTop || hairLeft || hairRight || neck || torso;
   }
 
   function setCanvasSize() {
@@ -108,7 +109,8 @@
         const darkFeature = brightness < 0.36;
         const skinTone = r > 95 && g > 48 && b > 32 && r >= g * 0.92 && r > b * 1.05 && saturation > 0.1;
         const clothing = ny > 0.56 && brightness > 0.48 && saturation < 0.26;
-        const hair = darkFeature && (inEllipse(nx, ny, 0.36, 0.49, 0.22, 0.44) || inEllipse(nx, ny, 0.64, 0.45, 0.21, 0.38) || face);
+        const hairTop = inEllipse(nx, ny, 0.5, 0.25, 0.24, 0.16);
+        const hair = darkFeature && (hairTop || inEllipse(nx, ny, 0.36, 0.49, 0.22, 0.44) || inEllipse(nx, ny, 0.64, 0.45, 0.21, 0.38) || face);
 
         if (!hair && !(skinTone && (face || neckRegion)) && !clothing) {
           continue;
