@@ -2,23 +2,76 @@
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const revealItems = [];
 
-  function addReveal(selector, variant = "", delayStep = 70, maxDelay = 360) {
+  function addReveal(selector, options = {}) {
+    const {
+      variant = "",
+      delayStep = 70,
+      maxDelay = 360,
+      baseDelay = 0
+    } = options;
+
     document.querySelectorAll(selector).forEach((element, index) => {
       element.classList.add("reveal-item");
       if (variant) {
         element.classList.add(variant);
       }
-      element.style.setProperty("--reveal-delay", `${Math.min(index * delayStep, maxDelay)}ms`);
+      element.style.setProperty("--reveal-delay", `${baseDelay + Math.min(index * delayStep, maxDelay)}ms`);
       revealItems.push(element);
     });
   }
 
-  addReveal(".about-section .section-heading, #work .section-heading", "reveal-from-left", 90);
-  addReveal(".about-copy > p, .timeline-item", "", 95);
-  addReveal(".skill-tags li", "reveal-pop", 35, 260);
-  addReveal(".work-style-section .section-heading, #projects .section-heading", "", 80);
-  addReveal(".work-style-grid article, .project-card", "reveal-pop", 85);
-  addReveal(".contact-copy > *, .contact-form", "reveal-from-right", 90);
+  addReveal(".hero-copy .eyebrow, .hero-copy h1, .hero-lede, .hero-body, .hero-actions", {
+    variant: "reveal-soft",
+    delayStep: 90,
+    maxDelay: 420
+  });
+  addReveal(".impact-strip > div", {
+    variant: "reveal-card",
+    delayStep: 85,
+    baseDelay: 180
+  });
+  addReveal(".portrait-stage", {
+    variant: "reveal-from-right",
+    baseDelay: 140
+  });
+  addReveal(".about-section .section-heading", {
+    variant: "reveal-from-left"
+  });
+  addReveal(".about-copy > p", {
+    variant: "reveal-soft",
+    delayStep: 95
+  });
+  addReveal(".skill-tags li", {
+    variant: "reveal-pop",
+    delayStep: 34,
+    maxDelay: 260
+  });
+  addReveal(".work-style-section .section-heading, #projects .section-heading", {
+    variant: "reveal-soft"
+  });
+  addReveal(".work-style-grid article", {
+    variant: "reveal-card",
+    delayStep: 90
+  });
+  addReveal("#work .section-heading", {
+    variant: "reveal-from-left"
+  });
+  addReveal(".timeline-item", {
+    variant: "reveal-from-right",
+    delayStep: 115
+  });
+  addReveal(".project-card", {
+    variant: "reveal-card",
+    delayStep: 95
+  });
+  addReveal(".contact-copy > *", {
+    variant: "reveal-from-left",
+    delayStep: 80
+  });
+  addReveal(".contact-form", {
+    variant: "reveal-from-right",
+    baseDelay: 120
+  });
 
   if (!revealItems.length) {
     return;
@@ -26,6 +79,13 @@
 
   function show(element) {
     element.classList.add("is-visible");
+    element.addEventListener(
+      "transitionend",
+      () => {
+        element.style.willChange = "auto";
+      },
+      { once: true }
+    );
   }
 
   if (prefersReducedMotion || !("IntersectionObserver" in window)) {
