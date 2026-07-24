@@ -11,6 +11,7 @@
 // script-property name. Add your actual email in Project Settings instead.
 const CONTACT_TO_EMAIL_PROPERTY = "CONTACT_TO_EMAIL";
 const SUBJECT_PREFIX = "Portfolio Contact";
+const RATE_LIMIT_SECONDS = 60;
 
 function doGet() {
   return jsonResponse({
@@ -39,13 +40,17 @@ function doPost(e) {
       return jsonResponse({ ok: false, error: "Missing CONTACT_TO_EMAIL script property." });
     }
 
-    const validationError = validateInput(name, email, message);
+    const validationError = validateInput(name, email, company, message, source);
     if (validationError) {
       return jsonResponse({ ok: false, error: validationError });
     }
 
     if (hasSpamSignals(name + " " + company + " " + message)) {
       return jsonResponse({ ok: false, error: "Message did not pass spam checks." });
+    }
+
+    if (isRateLimited(email)) {
+      return jsonResponse({ ok: false, error: "Please wait before sending another message." });
     }
 
     const safeSubject = SUBJECT_PREFIX + ": " + truncate(name, 80);
@@ -75,7 +80,7 @@ function doPost(e) {
   }
 }
 
-function validateInput(name, email, message) {
+function validateInput(name, email, company, message, source) {
   if (name.length < 2 || name.length > 80) {
     return "Name length is invalid.";
   }
@@ -84,8 +89,16 @@ function validateInput(name, email, message) {
     return "Email is invalid.";
   }
 
+  if (company.length > 120) {
+    return "Company length is invalid.";
+  }
+
   if (message.length < 2 || message.length > 3000) {
     return "Message length is invalid.";
+  }
+
+  if (source.length > 500) {
+    return "Source length is invalid.";
   }
 
   return "";
@@ -100,6 +113,23 @@ function hasSpamSignals(value) {
   const linkMatches = lower.match(/https?:\/\//g) || [];
   const blockedTerms = /\b(crypto|casino|loan|viagra|seo backlink)\b/;
   return linkMatches.length > 2 || blockedTerms.test(lower);
+}
+
+function isRateLimited(email) {
+  const digest = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    email.toLowerCase(),
+    Utilities.Charset.UTF_8
+  );
+  const key = "contact:" + Utilities.base64EncodeWebSafe(digest).slice(0, 32);
+  const cache = CacheService.getScriptCache();
+
+  if (cache.get(key)) {
+    return true;
+  }
+
+  cache.put(key, "1", RATE_LIMIT_SECONDS);
+  return false;
 }
 
 function clean(value) {
