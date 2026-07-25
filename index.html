@@ -30,7 +30,7 @@
     <meta name="twitter:image:alt" content="Romi Padam — Product Strategy, Platforms, Intelligent Automation">
     <title>Romi Padam | Product Leader</title>
     <link rel="icon" href="favicon.png" type="image/png" sizes="256x256">
-    <link rel="stylesheet" href="styles.css?v=31">
+    <link rel="stylesheet" href="styles.css?v=33">
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -303,8 +303,7 @@
             <p class="kicker">Contact</p>
             <h2>Let&rsquo;s connect.</h2>
             <p>
-              For opportunities, collaborations, or conversations about AI, automation, and product
-              leadership, send a note or connect with me on LinkedIn.
+              Have an opportunity, collaboration, or idea worth discussing? Send me a note.
             </p>
             <div class="social-links" aria-label="Professional profiles">
               <a href="https://www.linkedin.com/in/romipadam/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
@@ -312,37 +311,55 @@
             </div>
           </div>
 
-          <form class="contact-form" id="contact-form" novalidate>
-            <div class="field-grid">
+          <div class="contact-actions">
+            <form class="contact-form" id="contact-form" novalidate>
+              <div class="field-grid">
+                <label>
+                  <span>Name</span>
+                  <input type="text" name="name" autocomplete="name" required minlength="2" maxlength="80" aria-describedby="form-status">
+                </label>
+                <label>
+                  <span>Email</span>
+                  <input type="email" name="email" autocomplete="email" required maxlength="120" aria-describedby="form-status">
+                </label>
+              </div>
               <label>
-                <span>Name</span>
-                <input type="text" name="name" autocomplete="name" required minlength="2" maxlength="80" aria-describedby="form-status">
+                <span>Company</span>
+                <input type="text" name="company" autocomplete="organization" maxlength="120" aria-describedby="form-status">
               </label>
               <label>
-                <span>Email</span>
-                <input type="email" name="email" autocomplete="email" required maxlength="120" aria-describedby="form-status">
+                <span>Message</span>
+                <textarea name="message" rows="6" required minlength="2" maxlength="3000" aria-describedby="form-status"></textarea>
               </label>
-            </div>
-            <label>
-              <span>Company</span>
-              <input type="text" name="company" autocomplete="organization" maxlength="120" aria-describedby="form-status">
-            </label>
-            <label>
-              <span>Message</span>
-              <textarea name="message" rows="6" required minlength="2" maxlength="3000" aria-describedby="form-status"></textarea>
-            </label>
-            <label class="honeypot" aria-hidden="true">
-              <span>Leave this field empty</span>
-              <input type="text" name="website" tabindex="-1" autocomplete="off">
-            </label>
-            <div class="form-actions">
-              <button class="button primary" type="submit">Send Note</button>
-              <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
-            </div>
-            <noscript>
-              <p class="form-status is-error">JavaScript is required for this form. Please connect with me on LinkedIn instead.</p>
-            </noscript>
-          </form>
+              <label class="honeypot" aria-hidden="true">
+                <span>Leave this field empty</span>
+                <input type="text" name="website" tabindex="-1" autocomplete="off">
+              </label>
+              <div class="form-actions">
+                <button class="button primary" type="submit">Send Note</button>
+                <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+              </div>
+              <noscript>
+                <p class="form-status is-error">JavaScript is required to send this form. You can book a conversation below instead.</p>
+              </noscript>
+            </form>
+
+            <aside class="booking-row" aria-labelledby="booking-title">
+              <div>
+                <h3 id="booking-title">Prefer a conversation?</h3>
+                <p>Book a 30-minute time that works for you.</p>
+              </div>
+              <a
+                class="button booking-button"
+                href="https://calendly.com/romi2410"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Book 30 minutes
+                <span aria-hidden="true">&nearr;</span>
+              </a>
+            </aside>
+          </div>
         </div>
       </section>
     </main>
